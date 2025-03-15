@@ -1,20 +1,18 @@
-﻿using UnityEngine;
-
-namespace Utilities.BehaviourTree
+﻿namespace Utilities.BehaviourTree
 {
-    public class Sequence : Node
+    public class Selector : Node
     {
-        public Sequence(string n)
+        public Selector(string n)
         {
             Name = n;
         }
 
         public override Status Process()
         {
-            if(CurrentChild >= Children.Count)
+            if (CurrentChild >= Children.Count)
             {
                 CurrentChild = 0;
-                return Status.Success;
+                return Status.Failure;
             }
 
 
@@ -24,14 +22,15 @@ namespace Utilities.BehaviourTree
                 return Status.Running;
             }
 
-            if(childStatus == Status.Failure)
-            {
-                return childStatus;
-            }
-
-            if(childStatus == Status.Success) 
+            if (childStatus == Status.Failure)
             {
                 CurrentChild++;
+            }
+
+            if (childStatus == Status.Success)
+            {
+                CurrentChild = 0;
+                return childStatus;
             }
 
 

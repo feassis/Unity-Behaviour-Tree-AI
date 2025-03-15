@@ -13,6 +13,13 @@
             ProcessMethod = procressMethod;
         }
 
+        public Leaf(string name, Tick procressMethod, int order)
+        {
+            Name = name;
+            ProcessMethod = procressMethod;
+            SortOrder = order;
+        }
+
         public override Status Process()
         {
             if(ProcessMethod == null)

@@ -8,6 +8,7 @@ namespace Utilities.BehaviourTree
         public List<Node> Children = new List<Node>();
         public int CurrentChild = 0;
         public string Name;
+        public int SortOrder;
 
         public Node() { }
 
@@ -16,7 +17,13 @@ namespace Utilities.BehaviourTree
             Name = name;
         }
 
-        public void AddChild(Node n)
+        public Node(string name, int order)
+        {
+            Name = name;
+            SortOrder = order;
+        }
+
+        public virtual void AddChild(Node n)
         {
             Children.Add(n);
         }
