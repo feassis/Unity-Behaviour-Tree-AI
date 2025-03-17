@@ -16,6 +16,7 @@ public class BTAgent : MonoBehaviour
     private const float AcceptableDistance = 3.5f;
 
     Node.Status treeStatus = Node.Status.Running;
+    Vector3 remmemberedLocation;
 
     public enum ActionState
     {
@@ -33,6 +34,35 @@ public class BTAgent : MonoBehaviour
     protected virtual void Start()
     {
         StartCoroutine(Behave());
+    }
+
+    public Node.Status CanSee(Vector3 target, string tag, float maxDistance, float maxAngle)
+    {
+        Vector3 directionToTarget = target - this.transform.position;
+        float angle = Vector3.Angle(directionToTarget, transform.forward);
+
+        if(angle <= maxAngle || directionToTarget.magnitude <= maxDistance)
+        {
+            RaycastHit hitInfo;
+            if(Physics.Raycast(this.transform.position, directionToTarget, out hitInfo))
+            {
+                if (hitInfo.collider.gameObject.CompareTag(tag))
+                {
+                    return Node.Status.Success;
+                }
+            }
+        }
+
+        return Node.Status.Failure;
+    }
+
+    public Node.Status Flee(Vector3 location, float fleeDistance)
+    {
+        if(state == ActionState.Idle)
+        {
+            remmemberedLocation = this.transform.position + (transform.position - location).normalized * fleeDistance;
+        }
+        return GoToLocation(remmemberedLocation);
     }
 
     protected Node.Status GoToLocation(Vector3 destination)

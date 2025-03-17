@@ -11,7 +11,9 @@ public class RobberBehaviour : BTAgent
     public GameObject Van;
     public GameObject BackDoor;
     public GameObject FrontDoor;
+    public GameObject Cop;
     [Range(0f, 1000f)] public int money = 800;
+    [SerializeField] private float fleeDistance = 10f;
 
     Node.Status treeStatus = Node.Status.Running;
 
@@ -32,24 +34,51 @@ public class RobberBehaviour : BTAgent
         for (int i = 0; i < stealables.Length; i++)
         {
             int index = i; 
-            Leaf goStealItem = new Leaf($"Steal Item {index}", () => GoStealItem(index));
+            Leaf goStealItem = new Leaf($"Steal Item {stealables[index].name}", () => GoStealItem(index));
             selectObjectToSteal.AddChild(goStealItem);
         }
 
         Leaf goToVan = new Leaf("Go To Van", GoToVan);
         Inverter invertMoney = new Inverter("Invert Money");
+        Inverter invertCanSeeCop = new Inverter("Can't see Cop");
+
+        Sequence lookForCop = new Sequence("Look For Cop");
+        Leaf canSee = new Leaf("Can See Cop", CanSeeCop);
+        Leaf flee = new Leaf("Flee Cop", FleeFromCop);
+        
+        Selector beThief = new Selector("Be A Thief");
 
         openDoor.AddChild(goToFrontDoor);
         openDoor.AddChild(goToBackDoor);
 
         invertMoney.AddChild(hasMoney);
+        invertCanSeeCop.AddChild(canSee);
 
         steal.AddChild(invertMoney);
+        steal.AddChild(invertCanSeeCop);
         steal.AddChild(openDoor);
+        steal.AddChild(invertCanSeeCop);
         steal.AddChild(selectObjectToSteal);
+        steal.AddChild(invertCanSeeCop);
         steal.AddChild(goToVan);
 
-        tree.AddChild(steal);
+        lookForCop.AddChild(canSee);
+        lookForCop.AddChild(flee);        
+
+        beThief.AddChild(lookForCop);
+        beThief.AddChild(steal);
+        
+        tree.AddChild(beThief);
+    }
+
+    public Node.Status CanSeeCop()
+    {
+        return CanSee(Cop.transform.position, "Cop", fleeDistance, 90);
+    }
+
+    public Node.Status FleeFromCop()
+    {
+        return Flee(Cop.transform.position, fleeDistance);
     }
 
     private Node.Status GoStealItem(int index)
