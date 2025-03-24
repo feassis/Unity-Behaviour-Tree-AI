@@ -96,4 +96,14 @@ public class BTAgent : MonoBehaviour
             yield return waitForSeconds;
         }
     }
+
+
+    public Node.Status IsOpen()
+    {
+        if(Blackboard.Instance.timeOfDay < 9 || Blackboard.Instance.timeOfDay > 17)
+        {
+            return Node.Status.Failure;
+        }
+        return Node.Status.Success;
+    }
 }

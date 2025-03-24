@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿using System;
 
 namespace Utilities.BehaviourTree
 {
@@ -11,9 +11,9 @@ namespace Utilities.BehaviourTree
 
         public override Status Process()
         {
-            if(CurrentChild >= Children.Count)
+            if (CurrentChild >= Children.Count)
             {
-                CurrentChild = 0;
+                this.Reset();
                 return Status.Success;
             }
 
@@ -26,6 +26,7 @@ namespace Utilities.BehaviourTree
 
             if(childStatus == Status.Failure)
             {
+                this.Reset();
                 return childStatus;
             }
 
@@ -34,6 +35,47 @@ namespace Utilities.BehaviourTree
                 CurrentChild++;
             }
 
+
+            return Status.Running;
+        }
+    }
+
+    public class Loop : Node
+    {
+        Func<bool> abortCondition;
+        public Loop(string n, System.Func<bool> abortCondition)
+        {
+            Name = n;
+            this.abortCondition = abortCondition;
+        }
+
+        public override Status Process()
+        {
+            if (abortCondition())
+            {
+                this.Reset();
+                return Status.Success;
+            }
+
+
+            Status childStatus = Children[CurrentChild].Process();
+            if (childStatus == Status.Running)
+            {
+                return Status.Running;
+            }
+
+            if (childStatus == Status.Failure)
+            {
+                this.Reset();
+                return childStatus;
+            }
+
+            CurrentChild++;
+
+            if(CurrentChild >= Children.Count)
+            {
+                CurrentChild = 0;
+            }
 
             return Status.Running;
         }

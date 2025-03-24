@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-
+﻿
 namespace Utilities.BehaviourTree
 {
     public class RandomSelector : Node
@@ -12,7 +11,7 @@ namespace Utilities.BehaviourTree
 
         public override Status Process()
         {
-            if(!shuffled)
+             if (!shuffled)
             {
                 Children.Shuffle();
                 shuffled = true;
@@ -42,6 +41,7 @@ namespace Utilities.BehaviourTree
 
             if (childStatus == Status.Success)
             {
+                CurrentChild++;
                 return childStatus;
             }
 

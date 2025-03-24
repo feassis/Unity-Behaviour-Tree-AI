@@ -2,6 +2,8 @@ using UnityEngine;
 using Utilities.BehaviourTree;
 using UnityEngine.AI;
 using System;
+using System.Collections;
+using Random = UnityEngine.Random;
 
 public class RobberBehaviour : BTAgent
 {
@@ -23,13 +25,10 @@ public class RobberBehaviour : BTAgent
     protected override void Awake()
     {
         base.Awake();
-
-        Sequence steal = new Sequence("Steal Something");
-        Leaf hasMoney = new Leaf("Needs Money", HasMoney);
-        PrioritisingSelector openDoor = new PrioritisingSelector("Open Door");
+PrioritisingSelector openDoor = new PrioritisingSelector("Open Door");
         RandomSelector selectObjectToSteal = new RandomSelector("Select Object To Steal");
-        Leaf goToBackDoor = new Leaf("Go To Back Door", GoToBackDoor, 2);
-        Leaf goToFrontDoor = new Leaf("Go To Front Door", GoToFrontDoor, 1);
+        Leaf goToBackDoor = new Leaf("Go To Back Door", GoToBackDoor, 1);
+        Leaf goToFrontDoor = new Leaf("Go To Front Door", GoToFrontDoor, 2);
 
         for (int i = 0; i < stealables.Length; i++)
         {
@@ -39,7 +38,6 @@ public class RobberBehaviour : BTAgent
         }
 
         Leaf goToVan = new Leaf("Go To Van", GoToVan);
-        Inverter invertMoney = new Inverter("Invert Money");
         Inverter invertCanSeeCop = new Inverter("Can't see Cop");
 
         Sequence lookForCop = new Sequence("Look For Cop");
@@ -51,25 +49,41 @@ public class RobberBehaviour : BTAgent
         openDoor.AddChild(goToFrontDoor);
         openDoor.AddChild(goToBackDoor);
 
-        invertMoney.AddChild(hasMoney);
         invertCanSeeCop.AddChild(canSee);
 
-        steal.AddChild(invertMoney);
-        steal.AddChild(invertCanSeeCop);
+        DependancySequence steal = new DependancySequence($"Dependance Steal ", IsSeeingCopOrHasMoneyOrGalleryIsOpen, () => agent.ResetPath());
+
         steal.AddChild(openDoor);
-        steal.AddChild(invertCanSeeCop);
         steal.AddChild(selectObjectToSteal);
-        steal.AddChild(invertCanSeeCop);
         steal.AddChild(goToVan);
 
         lookForCop.AddChild(canSee);
-        lookForCop.AddChild(flee);        
+        lookForCop.AddChild(flee);
 
+        Selector stealWithFallBack = new Selector("Steal with fallback");
+        stealWithFallBack.AddChild(steal);
+        stealWithFallBack.AddChild(goToVan);
+
+        beThief.AddChild(stealWithFallBack);
         beThief.AddChild(lookForCop);
-        beThief.AddChild(steal);
-        
+       
         tree.AddChild(beThief);
+
+        StartCoroutine(LifeExpenditures());
     }
+
+    private IEnumerator LifeExpenditures()
+    {
+        while (true)
+        {
+            money = Math.Clamp(money - 5, 0, 300000);
+
+            yield return new WaitForSeconds(Random.Range(1, 5));
+        }
+    }
+
+    public bool IsSeeingCopOrHasMoneyOrGalleryIsOpen() => CanSeeCop() == Node.Status.Success 
+        || HasMoney() == Node.Status.Success || IsGalleryOpen();
 
     public Node.Status CanSeeCop()
     {
@@ -83,7 +97,6 @@ public class RobberBehaviour : BTAgent
 
     private Node.Status GoStealItem(int index)
     {
-        Debug.Log($"index {index}");
         if(stealables[index].activeSelf == false)
         {
             return Node.Status.Failure;
@@ -103,6 +116,8 @@ public class RobberBehaviour : BTAgent
         }
     }
 
+    private bool IsGalleryOpen() => IsOpen() == Node.Status.Success;
+
     public Node.Status HasMoney()
     {
         if(money < 500)
@@ -118,8 +133,12 @@ public class RobberBehaviour : BTAgent
         Node.Status s = GoToLocation(Van.transform.position);
         if (s == Node.Status.Success)
         {
-            heldItem.SetActive(false);
-            money += 300;
+            if(heldItem != null)
+            {
+                heldItem.SetActive(false);
+                heldItem = null;
+                money += 300;
+            }
             return Node.Status.Success;
         }
         else

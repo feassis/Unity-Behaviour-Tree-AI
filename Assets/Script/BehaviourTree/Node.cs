@@ -35,6 +35,16 @@ namespace Utilities.BehaviourTree
             Failure = 2
         }
 
+        public void Reset()
+        {
+            foreach (var child in Children)
+            {
+                child.Reset();
+            }
+
+            CurrentChild = 0;
+        }
+
         public virtual Status Process()
         {
             return Children[CurrentChild].Process();

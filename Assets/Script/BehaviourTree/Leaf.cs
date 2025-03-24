@@ -42,16 +42,19 @@
 
         public override Status Process()
         {
-            if(ProcessMethod != null)
+            Status s = Status.Failure;
+
+            if (ProcessMethod != null)
             {
-                return ProcessMethod();
+                s = ProcessMethod();
             }
             else if(ProcessMethodM != null)
             {
-                return ProcessMethodM(Index);
+                s = ProcessMethodM(Index);
             }
 
-            return Status.Failure;
+            //UnityEngine.Debug.Log($"{Name} - {s}");
+            return s;
         }
     }
 }
