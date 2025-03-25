@@ -14,7 +14,6 @@ public class Blackboard : GenericMonoSingleton<Blackboard>
 
     void Start()
     {
-        timeOfDay = 0;
         StartCoroutine(UpdateClock());
     }
 
