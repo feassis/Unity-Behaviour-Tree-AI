@@ -1,5 +1,6 @@
 using ServiceLocator.Utilities;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -7,7 +8,9 @@ public class Blackboard : GenericMonoSingleton<Blackboard>
 {
     public TextMeshProUGUI clock;
     public float timeOfDay;
-    public GalleryEnjoyer patreon;
+    public Stack<GalleryEnjoyer> patreon = new Stack<GalleryEnjoyer>();
+    public float openingTime = 7;
+    public float closingTime = 18;
 
     void Start()
     {
@@ -22,22 +25,19 @@ public class Blackboard : GenericMonoSingleton<Blackboard>
             timeOfDay++;
             if (timeOfDay > 23) timeOfDay = 0;
             clock.text = timeOfDay + ":00";
+            if(timeOfDay == closingTime)
+            {
+                patreon.Clear();
+            }
             yield return new WaitForSeconds(5);
         }
     }
 
-    public GalleryEnjoyer RegisterPatron(GalleryEnjoyer patreon)
+    public bool RegisterPatron(GalleryEnjoyer patreon)
     {
-        if( this.patreon == null)
-        {
-            this.patreon = patreon;
-        }
+        this.patreon.Push(patreon);
 
-        return this.patreon;
+        return true;
     }
 
-    public void DeregisterPatreon()
-    {
-        this.patreon = null;
-    }
 }

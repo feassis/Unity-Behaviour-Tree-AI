@@ -142,7 +142,7 @@ public class GalleryEnjoyer : BTAgent
 
     public Node.Status IsWaiting()
     {
-        if(Blackboard.Instance.RegisterPatron(this) == this)
+        if(Blackboard.Instance.RegisterPatron(this))
         {
             return Node.Status.Success;
         }

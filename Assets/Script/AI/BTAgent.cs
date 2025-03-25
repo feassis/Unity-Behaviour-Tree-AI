@@ -16,7 +16,7 @@ public class BTAgent : MonoBehaviour
     private const float AcceptableDistance = 3.5f;
 
     Node.Status treeStatus = Node.Status.Running;
-    Vector3 remmemberedLocation;
+    protected Vector3 remmemberedLocation;
 
     public enum ActionState
     {
@@ -100,7 +100,8 @@ public class BTAgent : MonoBehaviour
 
     public Node.Status IsOpen()
     {
-        if(Blackboard.Instance.timeOfDay < 9 || Blackboard.Instance.timeOfDay > 17)
+        if(Blackboard.Instance.timeOfDay < Blackboard.Instance.openingTime 
+            || Blackboard.Instance.timeOfDay > Blackboard.Instance.closingTime)
         {
             return Node.Status.Failure;
         }
